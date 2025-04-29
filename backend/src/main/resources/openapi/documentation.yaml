@@ -1,0 +1,284 @@
+openapi: "3.0.3"
+info:
+  title: "flip"
+  description: "flip code-challenge API"
+  version: "1.0.0"
+servers:
+  - url: "http://localhost:8091"
+    description: "Development server"
+
+paths:
+  /users:
+    get:
+      summary: "List all users"
+      description: "Retrieves a list of all users"
+      responses:
+        "200":
+          description: "List of users retrieved successfully"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserDto"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      summary: "Create a new user"
+      description: "Creates a new user with the specified username"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddUserRequest"
+      responses:
+        "201":
+          description: "User created successfully"
+        "400":
+          description: "Invalid request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /urls:
+    post:
+      summary: "Create a new short URL"
+      description: "Creates a new short URL with the specified parameters"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUrlRequest"
+      responses:
+        "201":
+          description: "URL created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UrlDto"
+        "400":
+          description: "Invalid request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: "Short URL already exists"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /urls/random:
+    post:
+      summary: "Create a new random short URL"
+      description: "Creates a new short URL with a randomly generated string"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRandomUrlRequest"
+      responses:
+        "201":
+          description: "URL created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UrlDto"
+        "400":
+          description: "Invalid request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /urls/users/{userId}:
+    get:
+      summary: "Get URLs by user"
+      description: "Retrieves all URLs associated with a specific user"
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: "The user ID"
+      responses:
+        "200":
+          description: "List of URLs retrieved successfully"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UrlDto"
+        "400":
+          description: "Invalid user ID"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /urls/{shortUrl}:
+    get:
+      summary: "Get URL details"
+      description: "Retrieves details of a short URL"
+      parameters:
+        - name: shortUrl
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "The short URL identifier"
+      responses:
+        "200":
+          description: "URL details retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UrlDto"
+        "404":
+          description: "URL not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /{shortUrl}:
+    get:
+      summary: "Redirect to original URL"
+      description: "Redirects to the original URL associated with the short URL"
+      parameters:
+        - name: shortUrl
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "The short URL identifier"
+      responses:
+        "302":
+          description: "Redirect to original URL"
+          headers:
+            Location:
+              schema:
+                type: string
+              description: "The original URL to redirect to"
+        "404":
+          description: "URL not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    AddUserRequest:
+      type: object
+      required:
+        - username
+      properties:
+        username:
+          type: string
+          description: "The username for the new user"
+          minLength: 1
+          maxLength: 150
+
+    UserDto:
+      type: object
+      required:
+        - id
+        - username
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: "The unique identifier of the user"
+        username:
+          type: string
+          description: "The username of the user"
+
+    CreateUrlRequest:
+      type: object
+      required:
+        - url
+        - shortUrl
+      properties:
+        url:
+          type: string
+          format: uri
+          description: "The original URL to shorten"
+        shortUrl:
+          type: string
+          description: "The custom short URL identifier"
+        userId:
+          type: string
+          format: uuid
+          description: "Optional user ID associated with the URL"
+
+    CreateRandomUrlRequest:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+          description: "The original URL to shorten"
+        userId:
+          type: string
+          format: uuid
+          description: "Optional user ID associated with the URL"
+
+    UrlDto:
+      type: object
+      required:
+        - id
+        - url
+        - shortUrl
+        - clicks
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: "The unique identifier of the URL"
+        url:
+          type: string
+          format: uri
+          description: "The original URL"
+        shortUrl:
+          type: string
+          description: "The short URL identifier"
+        clicks:
+          type: integer
+          description: "Number of times the URL has been clicked"
+
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: "Error message"
+        code:
+          type: string
+          description: "Error code"
+        details:
+          type: object
+          description: "Additional error details"

@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+    networks:
+      - flip-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8091:8091"
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/flip
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - LOGGING_SEQ_URL=http://seq:5341
+      - NOT_FOUND_REDIRECT=http://frontend:3000/not-found
+    volumes:
+      - ./backend:/app
+      - gradle-cache:/home/gradle/.gradle
+    depends_on:
+      - postgres
+      - seq
+    networks:
+      - flip-network
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=flip
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - flip-network
+
+  seq:
+    image: datalust/seq:latest
+    ports:
+      - "5341:5341"
+      - "8081:80"
+    environment:
+      - ACCEPT_EULA=Y
+    volumes:
+      - seq-data:/data
+    networks:
+      - flip-network
+
+volumes:
+  postgres-data:
+  seq-data:
+  gradle-cache:
+
+networks:
+  flip-network:
+    driver: bridge 
