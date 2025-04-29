@@ -46,10 +46,10 @@ cd backend
 ./gradlew run
 ```
 
-The API will be available at `http://localhost:8080`
+The API will be available at `http://localhost:8091`
 
 ### API Documentation
-Swagger documentation is available at `http://localhost:8080/swagger-ui`
+Swagger documentation is available at `http://localhost:8091/swagger-ui`
 
 ### Docker Support
 To run the backend in Docker:
