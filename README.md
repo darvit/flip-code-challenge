@@ -113,9 +113,9 @@ This will start:
 ## API Endpoints
 
 ### URLs
-- `POST /api/urls` - Create a new short URL
-- `POST /api/urls/random` - Create a new short URL with random string
-- `GET /api/urls/{shortUrl}` - Get URL details
+- `POST /urls` - Create a new short URL
+- `POST /urls/random` - Create a new short URL with random string
+- `GET /urls/{shortUrl}` - Get URL details
 - `GET /{shortUrl}` - Redirect to original URL
 
 ## Contributing
